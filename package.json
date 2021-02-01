@@ -1,6 +1,8 @@
 {
   "license": "MIT",
   "dependencies": {
+    "d3": "^6.5.0",
+    "dagre-d3": "^0.6.4",
     "node-fetch": "^2.6.1",
     "react": "^16.14.0",
     "react-dom": "^16.14.0"
