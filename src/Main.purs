@@ -1,8 +1,7 @@
 module Main where
 
 import Prelude
-
-import Example (mkExample)
+import App (mkApp)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Exception (throw)
@@ -17,6 +16,6 @@ main = do
   container <- getElementById "container" =<< (map toNonElementParentNode $ document =<< window)
   case container of
     Nothing -> throw "Container element not found."
-    Just c  -> do
-      example <- mkExample
-      render (example {}) c
+    Just c -> do
+      app <- mkApp
+      render (app unit) c
