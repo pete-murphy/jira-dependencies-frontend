@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "spago build",
-    "serve": "parcel dev/index.html --out-dir dev-dist --open",
+    "start": "parcel dev/index.html --out-dir dev-dist --open",
     "build-prod": "rm -rf dist && spago bundle-app --to prod/index.js && parcel build prod/index.html"
   }
 }

@@ -1,0 +1,5 @@
+- [ ] Parse CSV (can use @gelisam's Haskell module as a starting point/reference)
+  - [ ] What is Ticket/Issue type?
+    - [ ] Might be more complicated than Sam's version, if we want to add filtering/interaction, etc.
+  - [ ] Parse CSV in general (so starting with just a string)
+  - [ ] Interpret `[Foo]` as a tag `Foo` to associate with ticket
