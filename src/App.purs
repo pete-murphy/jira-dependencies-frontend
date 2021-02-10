@@ -1,19 +1,16 @@
 module App where
 
 import Prelude
-import Graph (Graph, NodeKey(..), makeGraph)
-import React.Basic.DOM as R
-import React.Basic.Hooks (Component, useEffectOnce)
+import Effect.Class.Console (log)
+import Graph (Graph, NodeKey(..), useGraph)
+import React.Basic.Hooks (Component)
 import React.Basic.Hooks as Hooks
 
 mkApp :: Component Unit
 mkApp = do
   Hooks.component "App" \_ -> Hooks.do
-    useEffectOnce do
-      makeGraph graph
-      pure mempty
-    pure do
-      R.div_ []
+    svg <- useGraph graph
+    pure svg
 
 -- Test data
 graph :: Graph
@@ -21,14 +18,25 @@ graph =
   { nodes:
       [ { label: "Label A"
         , key: NodeKey "A"
+        , fn: log
         }
-      , { label: "Label very long label just a test"
+      , { label: "Testing once agains"
         , key: NodeKey "B"
+        , fn: log
+        }
+      , { label: "What"
+        , key: NodeKey "C"
+        , fn: log
         }
       ]
   , edges:
       [ { to:
             NodeKey "B"
+        , from:
+            NodeKey "A"
+        }
+      , { to:
+            NodeKey "C"
         , from:
             NodeKey "A"
         }
