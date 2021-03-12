@@ -5,35 +5,12 @@
   /* font-size: 2rem; */
 }
 
-.node * {
-  margin: unset;
+label {
+  display: inline-grid;
+  grid-gap: 0.2rem;
 }
 
-.node {
-}
-
-.node p {
-  width: 30ch;
-  word-break: break-word;
-  white-space: normal;
-}
-
-.node rect {
-  /* stroke: hsla(240, 100%, 50%, 0.5); */
-  stroke: tomato;
-  fill: #fff;
-  stroke-width: 1.5px;
-}
-
-.edgePath path.path {
-  /* stroke: hsla(20, 100%, 50%, 0.5); */
-  stroke: black;
-  fill: none;
-  stroke-width: 1.5px;
-}
-
-.arrowhead {
-  stroke: blue;
-  fill: blue;
-  stroke-width: 1.5px;
+form {
+  display: grid;
+  grid-gap: 0.2rem;
 }

@@ -1,44 +1,34 @@
 module App where
 
 import Prelude
-import Effect.Class.Console (log)
-import Graph (Graph, NodeKey(..), useGraph)
-import React.Basic.Hooks (Component)
+import CustomHooks as CustomHooks
+import React.Basic.DOM as R
+import React.Basic.DOM.Events as DOM.Events
+import React.Basic.Events as Events
+import React.Basic.Hooks (Component, (/\))
 import React.Basic.Hooks as Hooks
 
 mkApp :: Component Unit
 mkApp = do
   Hooks.component "App" \_ -> Hooks.do
-    svg <- useGraph graph
-    pure svg
-
--- Test data
-graph :: Graph
-graph =
-  { nodes:
-      [ { label: "Label A"
-        , key: NodeKey "A"
-        , fn: log
+    epic /\ setEpic <- CustomHooks.useInput ""
+    pure do
+      R.form
+        { className: "epic-form"
+        , onSubmit: DOM.Events.capture_ mempty -- TODO
+        , children:
+            [ R.h1_ [ R.text "Jira Dependencies Frontend" ]
+            , R.label_
+                [ R.text "Epic"
+                , R.input
+                    { value: epic
+                    , onChange: setEpic
+                    , placeholder: "e.g., PS-1234"
+                    }
+                ]
+            , R.button
+                { onClick: Events.handler_ mempty -- TODO
+                , children: [ R.text "Get CSV" ]
+                }
+            ]
         }
-      , { label: "Testing once agains"
-        , key: NodeKey "B"
-        , fn: log
-        }
-      , { label: "What"
-        , key: NodeKey "C"
-        , fn: log
-        }
-      ]
-  , edges:
-      [ { to:
-            NodeKey "B"
-        , from:
-            NodeKey "A"
-        }
-      , { to:
-            NodeKey "C"
-        , from:
-            NodeKey "A"
-        }
-      ]
-  }

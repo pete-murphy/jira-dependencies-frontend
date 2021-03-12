@@ -1,21 +1,23 @@
 module Main where
 
 import Prelude
-import App (mkApp)
+import App as App
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Effect.Exception (throw)
-import React.Basic.DOM (render)
-import Web.DOM.NonElementParentNode (getElementById)
-import Web.HTML (window)
-import Web.HTML.HTMLDocument (toNonElementParentNode)
-import Web.HTML.Window (document)
+import Effect.Exception as Exception
+import React.Basic.DOM as React.Basic.DOM
+import Web.DOM.NonElementParentNode as NonElementParentNode
+import Web.HTML as HTML
+import Web.HTML.HTMLDocument as HTMLDocument
+import Web.HTML.Window as Window
 
 main :: Effect Unit
 main = do
-  container <- getElementById "container" =<< (map toNonElementParentNode $ document =<< window)
-  case container of
-    Nothing -> throw "Container element not found."
-    Just c -> do
-      app <- mkApp
-      render (app unit) c
+  window <- HTML.window
+  document <- HTMLDocument.toNonElementParentNode <$> Window.document window
+  maybeRootNode <- NonElementParentNode.getElementById "root" document
+  case maybeRootNode of
+    Nothing -> Exception.throw "Element with ID 'root' not found."
+    Just rootNode -> do
+      app <- App.mkApp
+      React.Basic.DOM.render (app unit) rootNode
