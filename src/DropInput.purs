@@ -1,40 +1,80 @@
 module DropInput where
 
 import Prelude
+import Data.Either (Either(..))
 import Data.Foldable as Foldable
-import Data.Maybe (Maybe)
+import Data.Generic.Rep (class Generic)
+import Data.Generic.Rep.Show (genericShow)
+import Data.List (List)
 import Data.Nullable as Nullable
 import Effect (Effect)
+import Effect.Aff as Aff
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Events (SyntheticEvent)
 import React.Basic.Events as Events
 import React.Basic.Hooks (Component, (/\))
-import React.Basic.Hooks as React
+import React.Basic.Hooks as Hooks
+import Text.Parsing.CSV as CSV
+import Text.Parsing.Parser (ParseError)
+import Text.Parsing.Parser as Parser
 import Unsafe.Coerce as Coerce
+import Web.File.File (File)
 import Web.File.File as File
 import Web.File.FileList as FileList
+import Web.File.FileReader.Aff as FileReader.Aff
 import Web.HTML.Event.DataTransfer as DataTransfer
 import Web.HTML.Event.DragEvent (DragEvent)
 import Web.HTML.Event.DragEvent as DragEvent
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
 
-type CSV
-  = String
+newtype CSV
+  = CSV (List (List String))
 
-mkDropInput :: Component (Maybe CSV -> Effect Unit)
+derive newtype instance showCSV :: Show CSV
+
+data ParsedState
+  = Initial
+  | ParseError ParseError
+  | Success CSV
+
+derive instance genericParsedState :: Generic ParsedState _
+
+instance showParsedState :: Show ParsedState where
+  show = genericShow
+
+parseCSV :: String -> ParsedState
+parseCSV str = case Parser.runParser str CSV.defaultParsers.file of
+  Left parseError -> ParseError parseError
+  Right csv -> Success (CSV csv)
+
+mkDropInput :: Component (CSV -> Effect Unit)
 mkDropInput =
-  React.component "DropInput" \_ -> React.do
-    hover /\ setHover <- React.useState' false
-    files /\ setFiles <- React.useState []
-    fileInputRef <- React.useRef Nullable.null
+  Hooks.component "DropInput" \handleCSV -> Hooks.do
+    hover /\ setHover <- Hooks.useState' false
+    parsedCSV /\ setParsedCSV <- Hooks.useState' Initial
+    fileInputRef <- Hooks.useRef Nullable.null
+    -- Hooks.useEffect file do
+    --   Foldable.for_ file ?handleReadFile
+    --   pure mempty
+    -- where
+    -- handleReadFile :: 
     let
       onButtonClick =
         Events.handler_ do
-          maybeNode <- React.readRefMaybe fileInputRef
+          maybeNode <- Hooks.readRefMaybe fileInputRef
           Foldable.for_ (HTMLElement.fromNode =<< maybeNode) \htmlElement -> do
             HTMLElement.click htmlElement
+
+      handleReadFile :: File -> Effect Unit
+      handleReadFile file' = do
+        let
+          blob = File.toBlob file'
+        Aff.runAff_
+          -- (setParsedCSV <<< Either.hush)
+          (Foldable.traverse_ (setParsedCSV <<< parseCSV))
+          (FileReader.Aff.readAsText blob)
     pure do
       R.div
         { style:
@@ -58,30 +98,30 @@ mkDropInput =
             Events.handler_ do
               setHover false
         , onDragOver:
-            Events.handler DOM.Events.preventDefault \_ -> do
+            DOM.Events.capture_ do
               setHover true
         , onDrop:
             Events.handler DOM.Events.preventDefault \e -> do
               setHover false
               let
                 maybeFileList = DataTransfer.files (DragEvent.dataTransfer (toDragEvent e))
-              Foldable.for_ (FileList.items <$> maybeFileList) (setFiles <<< (<>))
+              Foldable.for_ (FileList.item 0 =<< maybeFileList) handleReadFile
         , children:
             [ R.button
                 { onClick: onButtonClick
-                , children: [ R.text "Upload Images" ]
+                , children: [ R.text "Upload CSV" ]
                 }
             , R.input
                 { ref: fileInputRef
                 , hidden: true
                 , type: "file"
                 , multiple: true
-                , accept: "image/*"
+                , accept: ".csv"
                 , onChange:
                     Events.handler DOM.Events.currentTarget \target ->
                       Foldable.for_ (HTMLInputElement.fromEventTarget target) \fileInput -> do
                         maybeFileList <- HTMLInputElement.files fileInput
-                        Foldable.for_ (FileList.items <$> maybeFileList) (setFiles <<< (<>))
+                        Foldable.for_ (FileList.item 0 =<< maybeFileList) handleReadFile
                 }
             , R.pre
                 { style:
@@ -94,7 +134,7 @@ mkDropInput =
                       , inlineSize: "100%"
                       }
                 , children:
-                    [ R.text (show { hover, files: File.name <$> files })
+                    [ R.text (show { hover, parsedCSV })
                     ]
                 }
             ]

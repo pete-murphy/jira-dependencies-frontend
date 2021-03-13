@@ -3,6 +3,7 @@ module App where
 import Prelude
 import CustomHooks as CustomHooks
 import Data.String as String
+import DropInput as DropInput
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
@@ -11,6 +12,7 @@ import URL as URL
 
 mkApp :: Component Unit
 mkApp = do
+  dropInput <- DropInput.mkDropInput
   Hooks.component "App" \_ -> Hooks.do
     epic /\ setEpic <- CustomHooks.useInput ""
     pure do
@@ -39,4 +41,5 @@ mkApp = do
                   , children: [ R.text (URL.makeCSVLinkURL epic) ]
                   }
             ]
+        , dropInput mempty
         ]
