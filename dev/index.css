@@ -11,6 +11,6 @@ label {
 }
 
 form {
-  display: grid;
+  display: inline-grid;
   grid-gap: 0.2rem;
 }

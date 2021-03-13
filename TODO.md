@@ -1,5 +1,5 @@
 ## MVP goals
-- [ ] User can fill out a ticket number and get a link to download CSV
+- [X] User can fill out a ticket number and get a link to download CSV
 - [ ] User can plop the CSV into the app
 - [ ] User can see the CSV rendered as a dependency graph
 

@@ -1,6 +1,7 @@
 { name = "jira-dependencies"
 , dependencies =
   [ "console"
+  , "csv"
   , "effect"
   , "psci-support"
   , "react-basic-dom"
