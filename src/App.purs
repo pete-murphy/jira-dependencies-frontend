@@ -4,6 +4,7 @@ import Prelude
 import CustomHooks as CustomHooks
 import Data.String as String
 import DropInput as DropInput
+import Effect.Class.Console as Console
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
@@ -41,5 +42,6 @@ mkApp = do
                   , children: [ R.text (URL.makeCSVLinkURL epic) ]
                   }
             ]
-        , dropInput mempty
+        , dropInput \csv -> do
+            Console.log (show csv)
         ]

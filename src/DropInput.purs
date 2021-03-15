@@ -2,11 +2,15 @@ module DropInput where
 
 import Prelude
 import Data.Either (Either(..))
+import Data.Foldable (class Foldable)
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
+import Data.Maybe (Maybe(..))
 import Data.Nullable as Nullable
+import Data.Traversable as Traversable
+import Debug.Trace as Debug
 import Effect (Effect)
 import Effect.Aff as Aff
 import React.Basic.DOM as R
@@ -22,6 +26,8 @@ import Web.File.File as File
 import Web.File.FileList as FileList
 import Web.File.FileReader.Aff as FileReader.Aff
 import Web.HTML.Event.DataTransfer as DataTransfer
+import Web.HTML.Event.DataTransfer.DataTransferItem as DataTransferItem
+import Web.HTML.Event.DataTransfer.Ext as DataTransfer.Ext
 import Web.HTML.Event.DragEvent as DragEvent
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
@@ -31,27 +37,35 @@ newtype CSV
 
 derive newtype instance showCSV :: Show CSV
 
-data ParsedState
-  = Initial
-  | ParseError ParseError
-  | Success CSV
+derive newtype instance eqCSV :: Eq CSV
 
-derive instance genericParsedState :: Generic ParsedState _
+type ParsedState a
+  = Maybe (Either ParseError a)
 
-instance showParsedState :: Show ParsedState where
+data HoverState
+  = NotHovering
+  | HoveringWithWarning
+  | Hovering
+
+derive instance genericHoverState :: Generic (HoverState) _
+
+instance showHoverState :: Show (HoverState) where
   show = genericShow
 
-parseCSV :: String -> ParsedState
+parseCSV :: String -> ParsedState CSV
 parseCSV str = case Parser.runParser str CSV.defaultParsers.file of
-  Left parseError -> ParseError parseError
-  Right csv -> Success (CSV csv)
+  Left parseError -> Just (Left parseError)
+  Right csv -> Just (Right (CSV csv))
 
 mkDropInput :: Component (CSV -> Effect Unit)
 mkDropInput =
   Hooks.component "DropInput" \handleCSV -> Hooks.do
-    hover /\ setHover <- Hooks.useState' false
-    parsedCSV /\ setParsedCSV <- Hooks.useState' Initial
+    hover /\ setHover <- Hooks.useState' NotHovering
+    parsedCSV /\ setParsedCSV <- Hooks.useState' Nothing
     fileInputRef <- Hooks.useRef Nullable.null
+    Hooks.useEffect parsedCSV do
+      (Foldable.traverse_ <<< Foldable.traverse_) handleCSV parsedCSV
+      pure mempty
     let
       onButtonClick =
         Events.handler_ do
@@ -64,7 +78,7 @@ mkDropInput =
         let
           blob = File.toBlob file'
         Aff.runAff_
-          (Foldable.traverse_ (setParsedCSV <<< parseCSV))
+          (Foldable.traverse_ setParsedCSV <<< (parseCSV <$> _))
           (FileReader.Aff.readAsText blob)
     pure do
       R.div
@@ -80,20 +94,41 @@ mkDropInput =
               , blockSize: "12rem"
               , borderWidth: "0.4rem"
               , borderStyle: "dashed"
-              , borderColor: if hover then "purple" else "lightgray"
+              , borderColor:
+                  case hover of
+                    Hovering -> "dodgerblue"
+                    HoveringWithWarning -> "orange"
+                    NotHovering -> "lightgray"
               }
         , onDragEnter:
             Events.handler_ do
-              setHover true
+              setHover Hovering
         , onDragLeave:
             Events.handler_ do
-              setHover false
+              setHover NotHovering
         , onDragOver:
-            DOM.Events.capture_ do
-              setHover true
+            DOM.Events.capture DOM.Events.nativeEvent \event -> do
+              _ <- pure (Debug.spy "event" event)
+              -- TODO: Give feedback when user is dragging an item, as to 
+              -- whether that item will be accepted (is a CSV) or not
+              -- Probably need to use FFI, something to the effect of
+              -- ```js
+              -- dataTransfer.items[0].type === "text/csv"
+              -- ```
+              --
+              let
+                maybeItem =
+                  DragEvent.fromEvent event
+                    >>= DragEvent.dataTransfer
+                    >>> DataTransfer.Ext.items
+                    >>> DataTransferItem.dataTransferItem 0
+                    <#> DataTransferItem.type_
+              -- >>= DataTransferItem
+              _ <- pure (Debug.spy "item" maybeItem)
+              setHover Hovering
         , onDrop:
             DOM.Events.capture DOM.Events.nativeEvent \e -> do
-              setHover false
+              setHover NotHovering
               let
                 maybeFileList = DataTransfer.files =<< DragEvent.dataTransfer <$> DragEvent.fromEvent e
               Foldable.for_ (FileList.item 0 =<< maybeFileList) handleReadFile
@@ -106,7 +141,7 @@ mkDropInput =
                 { ref: fileInputRef
                 , hidden: true
                 , type: "file"
-                , multiple: true
+                , multiple: false
                 , accept: ".csv"
                 , onChange:
                     Events.handler DOM.Events.currentTarget \target ->
@@ -114,18 +149,18 @@ mkDropInput =
                         maybeFileList <- HTMLInputElement.files fileInput
                         Foldable.for_ (FileList.item 0 =<< maybeFileList) handleReadFile
                 }
-            , R.pre
-                { style:
-                    R.css
-                      { color: "gray"
-                      , whiteSpace: "break-spaces"
-                      , textAlign: "center"
-                      , overflow: "hidden"
-                      , textOverflow: "ellipsis"
-                      , inlineSize: "100%"
-                      }
-                , children:
-                    [ R.text (show { hover, parsedCSV }) ]
-                }
+            -- , R.pre
+            --     { style:
+            --         R.css
+            --           { color: "gray"
+            --           , whiteSpace: "break-spaces"
+            --           , textAlign: "center"
+            --           , overflow: "hidden"
+            --           , textOverflow: "ellipsis"
+            --           , inlineSize: "100%"
+            --           }
+            --     , children:
+            --         [ R.text (show { hover, parsedCSV }) ]
+            --     }
             ]
         }
