@@ -28,17 +28,18 @@ foreign import data DataTransferItem :: Type
 
 foreign import data DataTransferItemList :: Type
 
+-- | The drag data item kind
 data DataTransferItemKind
-  = File
-  | String
+  = Text
+  | File
 
 derive instance eqDataTransferItemKind :: Eq DataTransferItemKind
 
 kind :: DataTransferItem -> DataTransferItemKind
 kind item =
   Unsafe.unsafePartial case _kind item of
+    "string" -> Text
     "file" -> File
-    "string" -> String
 
 type_ :: DataTransferItem -> String
 type_ = _type
