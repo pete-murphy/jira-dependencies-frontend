@@ -14,8 +14,9 @@ import Data.Function.Uncurried as Uncurried
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable)
 import Data.Nullable as Nullable
+import Partial.Unsafe as Unsafe
 
-foreign import _kind :: DataTransferItem -> DataTransferItemKind
+foreign import _kind :: DataTransferItem -> String
 
 foreign import _type :: DataTransferItem -> String
 
@@ -34,7 +35,10 @@ data DataTransferItemKind
 derive instance eqDataTransferItemKind :: Eq DataTransferItemKind
 
 kind :: DataTransferItem -> DataTransferItemKind
-kind = _kind
+kind item =
+  Unsafe.unsafePartial case _kind item of
+    "file" -> File
+    "string" -> String
 
 type_ :: DataTransferItem -> String
 type_ = _type
