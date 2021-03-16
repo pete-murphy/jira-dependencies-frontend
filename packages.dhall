@@ -13,3 +13,19 @@ in  upstream
       , version =
           "v3.0.0"
       }
+  with dotlang =
+      { dependencies =
+          [ "colors"
+          , "console"
+          , "effect"
+          , "generics-rep"
+          , "prelude"
+          , "psci-support"
+          , "strings"
+          , "test-unit"
+          ]
+      , repo = 
+          "https://github.com/csicar/purescript-dotlang.git"
+      , version =
+          "v3.1.0"
+      }
