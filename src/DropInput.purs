@@ -2,14 +2,13 @@ module DropInput where
 
 import Prelude
 import Data.Either (Either(..))
-import Data.Foldable (class Foldable)
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Nullable as Nullable
-import Data.Traversable as Traversable
+import Debug.Trace (class DebugWarning)
 import Debug.Trace as Debug
 import Effect (Effect)
 import Effect.Aff as Aff
@@ -57,7 +56,7 @@ parseCSV str = case Parser.runParser str CSV.defaultParsers.file of
   Left parseError -> Just (Left parseError)
   Right csv -> Just (Right (CSV csv))
 
-mkDropInput :: Component (CSV -> Effect Unit)
+mkDropInput :: DebugWarning => Component (CSV -> Effect Unit)
 mkDropInput =
   Hooks.component "DropInput" \handleCSV -> Hooks.do
     hover /\ setHover <- Hooks.useState' NotHovering
