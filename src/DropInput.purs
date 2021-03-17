@@ -12,6 +12,8 @@ import Debug.Trace (class DebugWarning)
 import Debug.Trace as Debug
 import Effect (Effect)
 import Effect.Aff as Aff
+import Jira (CSV(..))
+import Jira as Jira
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Events as Events
@@ -31,13 +33,6 @@ import Web.HTML.Event.DragEvent as DragEvent
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
 
-newtype CSV
-  = CSV (List (List String))
-
-derive newtype instance showCSV :: Show CSV
-
-derive newtype instance eqCSV :: Eq CSV
-
 type ParsedState a
   = Maybe (Either ParseError a)
 
@@ -51,12 +46,15 @@ derive instance genericHoverState :: Generic (HoverState) _
 instance showHoverState :: Show (HoverState) where
   show = genericShow
 
-parseCSV :: String -> ParsedState CSV
+parseCSV :: String -> ParsedState String
 parseCSV str = case Parser.runParser str CSV.defaultParsers.file of
   Left parseError -> Just (Left parseError)
-  Right csv -> Just (Right (CSV csv))
+  Right csv -> case Jira.csvToPrintedGraph (CSV csv) of
+    Nothing -> Nothing
+    Just x -> Just (Right x)
 
-mkDropInput :: DebugWarning => Component (CSV -> Effect Unit)
+--Just (Right (CSV csv))
+mkDropInput :: Component (String -> Effect Unit)
 mkDropInput =
   Hooks.component "DropInput" \handleCSV -> Hooks.do
     hover /\ setHover <- Hooks.useState' NotHovering
@@ -107,7 +105,7 @@ mkDropInput =
               setHover NotHovering
         , onDragOver:
             DOM.Events.capture DOM.Events.nativeEvent \event -> do
-              _ <- pure (Debug.spy "event" event)
+              -- _ <- pure (Debug.spy "event" event)
               -- TODO: Give feedback when user is dragging an item, as to 
               -- whether that item will be accepted (is a CSV) or not
               -- Probably need to use FFI, something to the effect of
@@ -123,7 +121,7 @@ mkDropInput =
                     >>> DataTransferItem.dataTransferItem 0
                     <#> DataTransferItem.type_
               -- >>= DataTransferItem
-              _ <- pure (Debug.spy "item" maybeItem)
+              -- _ <- pure (Debug.spy "item" maybeItem)
               setHover Hovering
         , onDrop:
             DOM.Events.capture DOM.Events.nativeEvent \e -> do

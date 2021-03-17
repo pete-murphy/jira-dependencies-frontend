@@ -9,6 +9,7 @@
   , "effect"
   , "generics-rep"
   , "ordered-collections"
+  , "profunctor-lenses"
   , "psci-support"
   , "react-basic-dom"
   , "react-basic-hooks"

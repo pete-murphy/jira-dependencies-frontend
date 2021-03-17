@@ -10,12 +10,15 @@ import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
 import React.Basic.Hooks as Hooks
 import URL as URL
+import Graph as Graph
 
 mkApp :: Component Unit
 mkApp = do
   dropInput <- DropInput.mkDropInput
+  graph <- Graph.mkGraph
   Hooks.component "App" \_ -> Hooks.do
     epic /\ setEpic <- CustomHooks.useInput ""
+    graphString /\ setGraphString <- Hooks.useState' ""
     pure do
       Hooks.fragment
         [ R.form
@@ -42,6 +45,8 @@ mkApp = do
                   , children: [ R.text (URL.makeCSVLinkURL epic) ]
                   }
             ]
-        , dropInput \csv -> do
-            Console.log (show csv)
+        , dropInput setGraphString
+        , R.pre_
+            [ R.text graphString ]
+        , graph graphString
         ]
