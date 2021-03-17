@@ -33,6 +33,7 @@ import Data.Traversable as Traversable
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.Unfoldable as Unfoldable
+import Debug.Trace as Debug
 
 newtype CSV
   = CSV (List (List String))
@@ -112,7 +113,7 @@ mkLabelledNode ::
   } ->
   Node
 mkLabelledNode { name, label, color, style, penWidth } =
-  Node name
+  Node (show name)
     [ Node.Label (Node.TextLabel label)
     , Node.Style style
     , Node.FillColor color
@@ -120,7 +121,7 @@ mkLabelledNode { name, label, color, style, penWidth } =
     ]
 
 mkEdge :: { from :: String, to :: String } -> Edge
-mkEdge { from, to } = Edge Forward from to []
+mkEdge { from, to } = Edge Forward (show from) (show to) []
 
 mkGraph :: Array Node -> Array Edge -> Graph
 mkGraph = DotLang.graphFromElements
@@ -143,7 +144,7 @@ toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, d
     | otherwise =
       String.joinWith "\n" do
         [ String.joinWith " " do
-            (Unfoldable.fromMaybe storyPoints <#> \x -> ("(" <> displayNumber x <> ")"))
+            issueKey `Array.cons` (Unfoldable.fromMaybe storyPoints <#> \x -> ("(" <> displayNumber x <> ")"))
         ]
           <> Maybe.maybe [] (wrapText 30) summary
 

@@ -19,6 +19,6 @@ exports._mkGraph = function () {
         }
       } catch (error) {}
     }, [graphString]);
-    return React.createElement("svg", { width: 400, height: 200, ref });
+    return React.createElement("svg", { width: 2000, height: 800, ref });
   };
 };
