@@ -4,6 +4,7 @@ module Jira
   ) where
 
 import Prelude
+
 import Color (Color)
 import Color as Color
 import Control.Monad.State as State
@@ -67,10 +68,9 @@ parseIssues (CSV inputCSV) = do
       Just do
         let
           -- A bug? Last row of CSV seems to always be empty
-          rows' = List.take (List.length rows - 1) rows
-        Array.zip (Array.fromFoldable header)
-          <$> Array.fromFoldable
-              (Array.fromFoldable <$> rows')
+          rows' = Array.fromFoldable (Array.fromFoldable <$> List.dropEnd 1 rows)
+          header' = Array.fromFoldable header
+        Array.zip header' <$> rows'
     _ -> Nothing
 
   parseAnnotatedIssue :: Array (String /\ String) -> Maybe (IssueKey /\ Issue)
@@ -143,31 +143,33 @@ toNode :: (IssueKey /\ Issue) -> Node
 toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, dummy }) = do
   mkLabelledNode { name: issueKey, label, color, style, penWidth }
   where
+  unlines = String.joinWith "\n" 
+  unwords = String.joinWith " "
   label
     | dummy = ""
     | otherwise =
-      String.joinWith "\n" do
-        [ String.joinWith " " do
-            issueKey `Array.cons` (Unfoldable.fromMaybe storyPoints <#> \x -> ("(" <> displayNumber x <> ")"))
+      unlines do
+        [ unwords do
+            issueKey `Array.cons` (Unfoldable.fromMaybe storyPoints <#> \n -> ("(" <> displayNumber n <> ")"))
         ]
           <> Maybe.maybe [] (wrapText 30) summary
 
   wrapText :: Int -> String -> Array String
   wrapText charLimit str =
     flip State.execState [] do
-      Traversable.for (String.split (Pattern " ") str) \word -> do
-        state <- State.get
+      let
+        words = String.split (Pattern " ") str
+      Traversable.for words \word -> do
+        lines <- State.get
         let
-          spaceAndWord = " " <> word
-          last = Array.last state
-        case String.length <$> last of
+          spacedWord = " " <> word
+          lastLine = Array.last lines
+          lastIndex = Array.length lines - 1
+        case String.length <$> lastLine of
           Just runningLength
-            | runningLength + String.length spaceAndWord <= charLimit ->
-              State.modify do
-                Index.ix (Array.length state - 1) <>~ spaceAndWord
-          _ ->
-            State.modify do
-              (_ <> [ word ])
+            | runningLength + String.length spacedWord <= charLimit -> do
+              State.modify (Index.ix lastIndex <>~ spacedWord)
+          _ -> State.modify (_ <> [ word ])
 
   color = case status of
     Nothing -> Color.white
