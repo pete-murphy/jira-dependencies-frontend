@@ -1,6 +1,7 @@
 module DropInput where
 
 import Prelude
+import Color as Color
 import Data.Either (Either(..))
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
@@ -73,6 +74,12 @@ mkDropInput =
         Aff.runAff_
           (Foldable.traverse_ setParsedCSV <<< (parseCSV <$> _))
           (FileReader.Aff.readAsText blob)
+
+      mkBlue = Color.hsla 203.0 1.0 0.5
+
+      mkRed = Color.hsla 13.0 1.0 0.5
+
+      mkGray = Color.hsla 0.0 0.0 0.5
     pure do
       R.div
         { style:
@@ -81,17 +88,22 @@ mkDropInput =
               , flexDirection: "column"
               , alignItems: "center"
               , justifyContent: "center"
-              , margin: "min(8rem, calc(50vh - 6rem)) auto"
               , borderRadius: "1rem"
-              , inlineSize: "32rem"
-              , blockSize: "12rem"
+              , inlineSize: "calc(100% - 4rem)"
+              , blockSize: "calc(100% - 4rem)"
               , borderWidth: "0.4rem"
+              , margin: "auto"
               , borderStyle: "dashed"
               , borderColor:
-                  case hover of
-                    Hovering -> "dodgerblue"
-                    HoveringWithWarning -> "orange"
-                    NotHovering -> "lightgray"
+                  Color.cssStringHSLA case hover of
+                    Hovering -> mkBlue 1.0
+                    HoveringWithWarning -> mkRed 1.0
+                    NotHovering -> mkGray 0.5
+              , backgroundColor:
+                  Color.cssStringHSLA case hover of
+                    Hovering -> mkBlue 0.1
+                    HoveringWithWarning -> mkRed 0.2
+                    NotHovering -> mkGray 0.0
               }
         , onDragEnter:
             Events.handler_ do

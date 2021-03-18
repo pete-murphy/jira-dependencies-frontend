@@ -38,15 +38,21 @@ mkApp = do
                         ]
                     ]
                 }
-            , R.div_
-                [ if String.null epic then
-                    mempty
-                  else
-                    R.a
-                      { href: URL.makeCSVLinkURL epic
-                      , children: [ R.text (URL.makeCSVLinkURL epic) ]
+            , R.p
+                { style:
+                    R.css
+                      { display: "inline-block"
                       }
-                ]
+                , children:
+                    [ if String.null epic then
+                        mempty
+                      else
+                        R.a
+                          { href: URL.makeCSVLinkURL epic
+                          , children: [ R.text (URL.makeCSVLinkURL epic) ]
+                          }
+                    ]
+                }
             , dropInput setGraphString
             ]
         _ -> graph graphString

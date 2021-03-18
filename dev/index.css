@@ -15,19 +15,50 @@ body {
 }
 
 #graph-container {
-  /* width: 100vw;
-  height: 100vh; */
+  width: 100vw;
+  height: 100vh;
 }
+
+svg {
+  width: 100vw;
+  height: 100vh;
+}
+
 #root {
-  max-height: 100vh;
+  /* max-height: 100vh; */
+  height: 100vh;
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-rows: max-content max-content 1fr;
+  gap: 1rem;
 }
 
 label {
   display: inline-grid;
-  grid-gap: 0.2rem;
+  grid-gap: 0.5rem;
+  inline-size: max-content;
+  font-size: 1rem;
+}
+
+label > input {
+  padding: 0.4rem;
+  border: 2px solid black;
+  font-size: 1rem;
+}
+
+button {
+  padding: 1rem 2rem;
+  border: 2px solid black;
+  font-size: 1rem;
+  background: none;
 }
 
 form {
   display: inline-grid;
   grid-gap: 0.2rem;
+  padding: 1rem 2rem;
+}
+
+p {
+  padding: 0.2rem 2rem;
 }
