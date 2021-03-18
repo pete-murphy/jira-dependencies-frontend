@@ -11,3 +11,4 @@
 /.cache/
 /dist/
 /dev-dist/
+.env

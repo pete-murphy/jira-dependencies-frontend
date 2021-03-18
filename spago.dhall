@@ -8,11 +8,13 @@
   , "dotlang"
   , "effect"
   , "generics-rep"
+  , "node-process"
   , "ordered-collections"
   , "profunctor-lenses"
   , "psci-support"
   , "react-basic-dom"
   , "react-basic-hooks"
+  , "record-extra"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

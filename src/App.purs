@@ -2,20 +2,21 @@ module App where
 
 import Prelude
 import CustomHooks as CustomHooks
+import Data.Either (Either(..))
 import Data.String as String
 import DropInput as DropInput
-import Effect.Class.Console as Console
+import Graph as Graph
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
 import React.Basic.Hooks as Hooks
 import URL as URL
-import Graph as Graph
 
 mkApp :: Component Unit
 mkApp = do
   dropInput <- DropInput.mkDropInput
   graph <- Graph.mkGraph
+  maybeMakeCSVLinkURL <- URL.makeCSVLinkURL
   Hooks.component "App" \_ -> Hooks.do
     epic /\ setEpic <- CustomHooks.useInput ""
     graphString /\ setGraphString <- Hooks.useState' ""
@@ -44,14 +45,15 @@ mkApp = do
                       { display: "inline-block"
                       }
                 , children:
-                    [ if String.null epic then
-                        mempty
-                      else
-                        R.a
-                          { href: URL.makeCSVLinkURL epic
-                          , children: [ R.text (URL.makeCSVLinkURL epic) ]
-                          }
-                    ]
+                    case String.null epic, maybeMakeCSVLinkURL of
+                      false, Right makeCSVLinkURL ->
+                        [ R.a
+                            { href: makeCSVLinkURL epic
+                            , children: [ R.text (makeCSVLinkURL epic) ]
+                            }
+                        ]
+                      _, Left error -> [ R.text (show error) ]
+                      true, _ -> mempty
                 }
             , dropInput setGraphString
             ]
