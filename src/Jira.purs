@@ -4,7 +4,6 @@ module Jira
   ) where
 
 import Prelude
-
 import Color (Color)
 import Color as Color
 import Control.Monad.State as State
@@ -15,6 +14,7 @@ import Data.DotLang as DotLang
 import Data.DotLang.Attr (FillStyle(..))
 import Data.DotLang.Attr.Node as Node
 import Data.DotLang.Class as DotLang.Class
+import Data.FunctorWithIndex as FunctorWithIndex
 import Data.Int as Int
 import Data.Lens ((<>~))
 import Data.Lens.Index as Index
@@ -143,7 +143,7 @@ toNode :: (IssueKey /\ Issue) -> Node
 toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, dummy }) = do
   mkLabelledNode { name: issueKey, label, color, style, penWidth }
   where
-  unlines = String.joinWith "\n" 
+  unlines = String.joinWith "\n"
   unwords = String.joinWith " "
   label
     | dummy = ""
@@ -222,25 +222,22 @@ markInitialNodes g = dummyNodes <> Foldable.foldr addEdge g dummyEdges
   mkDummyKey :: IssueKey -> IssueKey
   mkDummyKey = ("before-" <> _)
 
-  mkDummyNode :: IssueKey /\ Issue -> IssueKey /\ Issue
-  mkDummyNode (issueKey /\ { labels }) = do
-    mkDummyKey issueKey
-      /\ { summary: Nothing
-        , blocks: [ issueKey ]
-        , storyPoints: Nothing
-        , status: Just "Done"
-        , issueType: Nothing
-        , labels
-        , dummy: true
-        }
+  mkDummyNode :: IssueKey -> Issue -> Issue
+  mkDummyNode issueKey { labels } =
+    { summary: Nothing
+    , blocks: [ issueKey ]
+    , storyPoints: Nothing
+    , status: Just "Done"
+    , issueType: Nothing
+    , labels
+    , dummy: true
+    }
 
   mkDummyEdge :: IssueKey -> { from :: IssueKey, to :: IssueKey }
   mkDummyEdge issueKey = { from: mkDummyKey issueKey, to: issueKey }
 
   dummyNodes :: Map IssueKey Issue
-  dummyNodes =
-    Map.fromFoldable do
-      mkDummyNode <$> (Map.toUnfoldable initialNodes :: Array _)
+  dummyNodes = FunctorWithIndex.mapWithIndex mkDummyNode initialNodes
 
   dummyEdges :: Array { from :: IssueKey, to :: IssueKey }
   dummyEdges = mkDummyEdge <$> Set.toUnfoldable (Map.keys initialNodes)
