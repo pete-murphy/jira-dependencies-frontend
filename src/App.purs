@@ -10,6 +10,7 @@ import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
 import React.Basic.Hooks as Hooks
+import URL (ErrorMessage(..))
 import URL as URL
 
 mkApp :: Component Unit
@@ -52,7 +53,7 @@ mkApp = do
                             , children: [ R.text (makeCSVLinkURL epic) ]
                             }
                         ]
-                      _, Left error -> [ R.text (show error) ]
+                      _, Left (ErrorMessage error) -> [ R.text error ]
                       true, _ -> mempty
                 }
             , dropInput setGraphString
