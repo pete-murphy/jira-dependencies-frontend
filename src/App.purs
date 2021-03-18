@@ -46,7 +46,5 @@ mkApp = do
                   }
             ]
         , dropInput setGraphString
-        , R.pre_
-            [ R.text graphString ]
         , graph graphString
         ]

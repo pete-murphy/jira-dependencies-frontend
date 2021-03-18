@@ -5,17 +5,13 @@ const _ = graphviz;
 _;
 
 exports._mkGraph = function () {
-  console.log("Here");
   return function ({ graphString }) {
     const ref = React.useRef(null);
-    console.log("and here now");
     React.useEffect(() => {
       console.log({ graphString });
       try {
         if (ref && graphString) {
-          const x = graphviz(ref.current).dot(graphString);
-          console.log({ x });
-          x.render();
+          graphviz(ref.current).dot(graphString).render();
         }
       } catch (error) {}
     }, [graphString]);

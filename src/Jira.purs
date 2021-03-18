@@ -19,6 +19,7 @@ import Data.Lens ((<>~))
 import Data.Lens.Index as Index
 import Data.Lens.Record as Record
 import Data.List (List, (:))
+import Data.List as List
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
@@ -33,7 +34,6 @@ import Data.Traversable as Traversable
 import Data.Tuple (Tuple(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Data.Unfoldable as Unfoldable
-import Debug.Trace as Debug
 
 newtype CSV
   = CSV (List (List String))
@@ -65,8 +65,12 @@ parseIssues (CSV inputCSV) = do
   maybeAnnotatedRows = case inputCSV of
     header : rows ->
       Just do
+        let
+          -- A bug? Last row of CSV seems to always be empty
+          rows' = List.take (List.length rows - 1) rows
         Array.zip (Array.fromFoldable header)
-          <$> Array.fromFoldable (Array.fromFoldable <$> rows)
+          <$> Array.fromFoldable
+              (Array.fromFoldable <$> rows')
     _ -> Nothing
 
   parseAnnotatedIssue :: Array (String /\ String) -> Maybe (IssueKey /\ Issue)
@@ -152,14 +156,16 @@ toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, d
   wrapText charLimit str =
     flip State.execState [] do
       Traversable.for (String.split (Pattern " ") str) \word -> do
+        state <- State.get
         let
           spaceAndWord = " " <> word
-        last <- State.gets Array.last
+
+          last = Array.last state
         case String.length <$> last of
           Just runningLength
             | runningLength + String.length spaceAndWord <= charLimit ->
               State.modify do
-                Index.ix (runningLength - 1) <>~ spaceAndWord
+                (Index.ix (Array.length state - 1) <>~ spaceAndWord)
           _ ->
             State.modify do
               (_ <> [ word ])
@@ -167,9 +173,9 @@ toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, d
   color = case status of
     Nothing -> Color.white
     Just "To Do" -> Color.white
-    Just "Done" -> Color.hsl 82.0 0.39 0.3 -- darkolivegreen
+    Just "Done" -> Color.hsl 82.0 0.50 0.5 -- darkolivegreen (no it is not)
     Just "Won't Fix" -> Color.hsl 0.0 0.0 86.3 -- gainsboro
-    Just _ -> Color.hsl 23.0 1.00 0.93 -- between white and darkolivegreen
+    Just _ -> Color.hsl 82.0 0.50 0.8 -- between white and darkolivegreen (no it is not)
 
   style =
     if "stretch-goal" `Array.elem` labels || issueType == Just "Tech Debt" then

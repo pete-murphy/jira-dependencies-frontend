@@ -5,11 +5,8 @@ import Data.Either (Either(..))
 import Data.Foldable as Foldable
 import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
-import Data.List (List)
 import Data.Maybe (Maybe(..))
 import Data.Nullable as Nullable
-import Debug.Trace (class DebugWarning)
-import Debug.Trace as Debug
 import Effect (Effect)
 import Effect.Aff as Aff
 import Jira (CSV(..))
@@ -53,7 +50,6 @@ parseCSV str = case Parser.runParser str CSV.defaultParsers.file of
     Nothing -> Nothing
     Just x -> Just (Right x)
 
---Just (Right (CSV csv))
 mkDropInput :: Component (String -> Effect Unit)
 mkDropInput =
   Hooks.component "DropInput" \handleCSV -> Hooks.do
@@ -120,8 +116,6 @@ mkDropInput =
                     >>> DataTransfer.Ext.items
                     >>> DataTransferItem.dataTransferItem 0
                     <#> DataTransferItem.type_
-              -- >>= DataTransferItem
-              -- _ <- pure (Debug.spy "item" maybeItem)
               setHover Hovering
         , onDrop:
             DOM.Events.capture DOM.Events.nativeEvent \e -> do
@@ -132,7 +126,7 @@ mkDropInput =
         , children:
             [ R.button
                 { onClick: onButtonClick
-                , children: [ R.text "Upload CSV" ]
+                , children: [ R.text "Import CSV" ]
                 }
             , R.input
                 { ref: fileInputRef
@@ -146,18 +140,5 @@ mkDropInput =
                         maybeFileList <- HTMLInputElement.files fileInput
                         Foldable.for_ (FileList.item 0 =<< maybeFileList) handleReadFile
                 }
-            -- , R.pre
-            --     { style:
-            --         R.css
-            --           { color: "gray"
-            --           , whiteSpace: "break-spaces"
-            --           , textAlign: "center"
-            --           , overflow: "hidden"
-            --           , textOverflow: "ellipsis"
-            --           , inlineSize: "100%"
-            --           }
-            --     , children:
-            --         [ R.text (show { hover, parsedCSV }) ]
-            --     }
             ]
         }
