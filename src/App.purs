@@ -20,31 +20,33 @@ mkApp = do
     epic /\ setEpic <- CustomHooks.useInput ""
     graphString /\ setGraphString <- Hooks.useState' ""
     pure do
-      Hooks.fragment
-        [ R.form
-            { className: "epic-form"
-            , onSubmit: DOM.Events.capture_ mempty -- TODO
-            , children:
-                [ R.h1_ [ R.text "Jira Dependencies Frontend" ]
-                , R.label_
-                    [ R.text "Epic"
-                    , R.input
-                        { value: epic
-                        , onChange: setEpic
-                        , placeholder: "e.g., PS-1234"
-                        }
+      case graphString of
+        "" ->
+          Hooks.fragment
+            [ R.form
+                { className: "epic-form"
+                , onSubmit: DOM.Events.capture_ mempty -- TODO
+                , children:
+                    [ R.h1_ [ R.text "Jira Dependencies Frontend" ]
+                    , R.label_
+                        [ R.text "Epic"
+                        , R.input
+                            { value: epic
+                            , onChange: setEpic
+                            , placeholder: "e.g., PS-1234"
+                            }
+                        ]
                     ]
+                }
+            , R.div_
+                [ if String.null epic then
+                    mempty
+                  else
+                    R.a
+                      { href: URL.makeCSVLinkURL epic
+                      , children: [ R.text (URL.makeCSVLinkURL epic) ]
+                      }
                 ]
-            }
-        , R.div_
-            [ if String.null epic then
-                mempty
-              else
-                R.a
-                  { href: URL.makeCSVLinkURL epic
-                  , children: [ R.text (URL.makeCSVLinkURL epic) ]
-                  }
+            , dropInput setGraphString
             ]
-        , dropInput setGraphString
-        , graph graphString
-        ]
+        _ -> graph graphString

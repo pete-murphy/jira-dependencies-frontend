@@ -159,13 +159,12 @@ toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, d
         state <- State.get
         let
           spaceAndWord = " " <> word
-
           last = Array.last state
         case String.length <$> last of
           Just runningLength
             | runningLength + String.length spaceAndWord <= charLimit ->
               State.modify do
-                (Index.ix (Array.length state - 1) <>~ spaceAndWord)
+                Index.ix (Array.length state - 1) <>~ spaceAndWord
           _ ->
             State.modify do
               (_ <> [ word ])
@@ -174,7 +173,7 @@ toNode (issueKey /\ { summary, blocks, storyPoints, status, issueType, labels, d
     Nothing -> Color.white
     Just "To Do" -> Color.white
     Just "Done" -> Color.hsl 82.0 0.50 0.5 -- darkolivegreen (no it is not)
-    Just "Won't Fix" -> Color.hsl 0.0 0.0 86.3 -- gainsboro
+    Just "Won't Fix" -> Color.hsl 0.0 0.0 0.86 -- gainsboro
     Just _ -> Color.hsl 82.0 0.50 0.8 -- between white and darkolivegreen (no it is not)
 
   style =

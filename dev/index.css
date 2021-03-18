@@ -5,6 +5,23 @@
   /* font-size: 2rem; */
 }
 
+body {
+  padding: 0;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#graph-container {
+  /* width: 100vw;
+  height: 100vh; */
+}
+#root {
+  max-height: 100vh;
+}
+
 label {
   display: inline-grid;
   grid-gap: 0.2rem;
