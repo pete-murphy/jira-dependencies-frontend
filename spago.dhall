@@ -15,6 +15,7 @@
   , "react-basic-dom"
   , "react-basic-hooks"
   , "record-extra"
+  , "validation"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

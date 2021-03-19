@@ -4,13 +4,14 @@ import Prelude
 import CustomHooks as CustomHooks
 import Data.Either (Either(..))
 import Data.String as String
+import Data.Validation.Semigroup as V
 import DropInput as DropInput
 import Graph as Graph
 import React.Basic.DOM as R
 import React.Basic.DOM.Events as DOM.Events
 import React.Basic.Hooks (Component, (/\))
 import React.Basic.Hooks as Hooks
-import URL (ErrorMessage(..))
+import URL (MissingEnvVar(..))
 import URL as URL
 
 mkApp :: Component Unit
@@ -40,22 +41,21 @@ mkApp = do
                         ]
                     ]
                 }
-            , R.p
-                { style:
-                    R.css
-                      { display: "inline-block"
-                      }
-                , children:
-                    case String.null epic, maybeMakeCSVLinkURL of
-                      false, Right makeCSVLinkURL ->
-                        [ R.a
-                            { href: makeCSVLinkURL epic
-                            , children: [ R.text (makeCSVLinkURL epic) ]
-                            }
-                        ]
-                      _, Left (ErrorMessage error) -> [ R.text error ]
-                      true, _ -> mempty
-                }
+            , case String.null epic, V.toEither maybeMakeCSVLinkURL of
+                false, Right makeCSVLinkURL ->
+                  R.a
+                    { href: makeCSVLinkURL epic
+                    , children: [ R.text (makeCSVLinkURL epic) ]
+                    }
+                true, Left errs ->
+                  R.p
+                    { className: "error"
+                    , children:
+                        errs
+                          <#> \(MissingEnvVar err) ->
+                              R.li_ [ R.text err ]
+                    }
+                _, _ -> mempty
             , dropInput setGraphString
             ]
         _ -> graph graphString
