@@ -1,3 +1,7 @@
+## `jira-dependencies-frontend`
+
+This is a PureScript adaptation of the [`jira-dependencies`](https://github.com/gelisam/jira-dependencies) CLI program.
+
 ## Getting started
 
 You should be able to just run
